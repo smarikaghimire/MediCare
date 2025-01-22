@@ -14,36 +14,36 @@ import { motion } from "framer-motion";
 const emergencyContacts = [
   {
     name: "Emergency Room",
-    numbers: [{ name: "General", number: "+977 911" }],
+    numbers: [{ name: "General", number: "100" }],
   },
   {
     name: "Poison Control",
-    numbers: [{ name: "National Helpline", number: "+977 1-800-222-1222" }],
+    numbers: [{ name: "National Helpline", number: "061 567893" }],
   },
   {
     name: "Hospital Hotline",
     numbers: [
-      { name: "City Hospital", number: "+977 1 234 567 8900" },
-      { name: "County Medical", number: "+977 1 234 567 8905" },
+      { name: "City Hospital", number: "061 435678" },
+      { name: "County Medical", number: "061 567342" },
     ],
   },
   {
     name: "Ambulance Service",
-    numbers: [{ name: "Rapid Response", number: "+977 1 234 567 8901" }],
+    numbers: [{ name: "Rapid Response", number: "104" }],
   },
   {
     name: "Fire Department",
     numbers: [
-      { name: "Station 1", number: "+977 1 234 567 8902" },
-      { name: "Station 2", number: "+977 1 234 567 8910" },
-      { name: "Station 3", number: "+977 1 234 567 8915" },
+      { name: "Station 1", number: "+977 9853653890" },
+      { name: "Station 2", number: "+977 9876524317" },
+      { name: "Station 3", number: "+977 9876345123" },
     ],
   },
   {
     name: "Police Department",
     numbers: [
-      { name: "Local Precinct", number: "+977 1 234 567 8903" },
-      { name: "Highway Patrol", number: "+977 1 234 567 8920" },
+      { name: "Local Precinct", number: "102" },
+      { name: "Highway Patrol", number: "103" },
     ],
   },
 ];

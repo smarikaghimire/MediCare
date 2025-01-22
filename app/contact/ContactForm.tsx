@@ -56,7 +56,7 @@ const ContactForm = () => {
               <div className="space-y-6 relative">
                 <div className="flex items-center justify-center space-x-2 text-blue-600">
                   <Shield className="w-5 h-5" />
-                  <span className="font-semibold">25+ Years of Excellence</span>
+                  <span className="font-semibold">15+ Years of Excellence</span>
                 </div>
 
                 {/* Quote Section */}
@@ -179,10 +179,8 @@ const ContactForm = () => {
                   <Phone className="w-6 h-6 text-blue-600 mt-1 group-hover:scale-110 transition-transform" />
                   <div>
                     <h3 className="font-semibold text-slate-800 mb-1">Phone</h3>
-                    <p className="text-slate-600">+977 61-234567</p>
-                    <p className="text-blue-600 font-medium">
-                      Emergency: +977 61-234568
-                    </p>
+                    <p className="text-slate-600">+977 9876512345</p>
+                    <p className="text-blue-600 font-medium">Emergency: 100</p>
                   </div>
                 </div>
 
@@ -190,8 +188,8 @@ const ContactForm = () => {
                   <Mail className="w-6 h-6 text-blue-600 mt-1 group-hover:scale-110 transition-transform" />
                   <div>
                     <h3 className="font-semibold text-slate-800 mb-1">Email</h3>
-                    <p className="text-slate-600">info@healthcareplus.com</p>
-                    <p className="text-slate-600">support@healthcareplus.com</p>
+                    <p className="text-slate-600">info@medicare.com</p>
+                    <p className="text-slate-600">support@medicare.com</p>
                   </div>
                 </div>
 
