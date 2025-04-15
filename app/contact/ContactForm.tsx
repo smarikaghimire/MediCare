@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,12 +13,59 @@ import {
   Send,
   Shield,
   Stethoscope,
+  Loader2,
 } from "lucide-react";
 
 const ContactForm = () => {
-  const handleSubmit = (e: React.FormEvent) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState({ type: "", message: "" });
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Message sent successfully!");
+    setIsSubmitting(true);
+    setFeedback({ type: "", message: "" });
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setFeedback({
+          type: "success",
+          message: "Message sent successfully! We'll get back to you soon.",
+        });
+        // Reset form
+        setFormData({ name: "", email: "", message: "" });
+      } else {
+        setFeedback({
+          type: "error",
+          message: data.message || "Failed to send message. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setFeedback({
+        type: "error",
+        message: "Something went wrong. Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -93,6 +140,20 @@ const ContactForm = () => {
                 <Mail className="w-6 h-6 text-blue-600 mr-3" />
                 Send Us a Message
               </h2>
+
+              {/* Feedback message */}
+              {feedback.message && (
+                <div
+                  className={`mb-6 p-4 rounded-lg ${
+                    feedback.type === "success"
+                      ? "bg-green-50 text-green-700 border-l-4 border-green-500"
+                      : "bg-red-50 text-red-700 border-l-4 border-red-500"
+                  }`}
+                >
+                  {feedback.message}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label
@@ -104,9 +165,12 @@ const ContactForm = () => {
                   <Input
                     type="text"
                     id="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     placeholder="Enter your full name"
                     className="bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -120,9 +184,12 @@ const ContactForm = () => {
                   <Input
                     type="email"
                     id="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     placeholder="Enter your email address"
                     className="bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -135,18 +202,31 @@ const ContactForm = () => {
                   </label>
                   <Textarea
                     id="message"
+                    value={formData.message}
+                    onChange={handleChange}
                     placeholder="How can we help you today?"
                     className="bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-blue-500 h-32 resize-none"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
                 >
-                  <Send className="w-5 h-5" />
-                  Send Message
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      Send Message
+                    </>
+                  )}
                 </Button>
               </form>
             </div>

@@ -1,6 +1,16 @@
+// Add this at the top to mark the component as a client component
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,11 +22,21 @@ import {
   Shield,
   ClipboardCheck,
   Calendar,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Ensure this import is correct for Next.js 13+
 
 const SignupPage = () => {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+  });
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -25,24 +45,81 @@ const SignupPage = () => {
     password: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    return password.length >= 8;
+  };
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
+
+    // Clear errors when user types
+    if (name === "email" || name === "password") {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Here you can add your actual signup logic (e.g., API call)
-    console.log("User data submitted:", formData);
 
-    setTimeout(() => {
+    // Validate form
+    const newErrors = {};
+    if (!validateEmail(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!validatePassword(formData.password)) {
+      newErrors.password = "Password must be at least 8 characters";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Send data to your signup API endpoint
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+      console.log("Registration result:", result);
+
+      if (result.success) {
+        // Show success dialog instead of redirecting immediately
+        setShowSuccessDialog(true);
+      } else {
+        // Handle failure
+        alert(result.message || "Registration failed");
+      }
+    } catch (error) {
+      console.error("Error during registration:", error);
+      alert("An error occurred during registration. Please try again.");
+    } finally {
       setIsLoading(false);
-      // After successful signup, redirect or show a success message
-    }, 1500);
+    }
+  };
+
+  const handleLoginRedirect = () => {
+    router.push("/Login");
   };
 
   return (
@@ -182,10 +259,18 @@ const SignupPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="john.doe@example.com"
-                  className="pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                  className={`pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500 ${
+                    errors.email ? "border-red-500" : ""
+                  }`}
                   required
                 />
               </div>
+              {errors.email && (
+                <p className="text-sm text-red-500 mt-1 flex items-center">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {errors.email}
+                </p>
+              )}
             </div>
 
             <div>
@@ -218,10 +303,21 @@ const SignupPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="********"
-                  className="pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                  className={`pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500 ${
+                    errors.password ? "border-red-500" : ""
+                  }`}
                   required
                 />
               </div>
+              {errors.password && (
+                <p className="text-sm text-red-500 mt-1 flex items-center">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {errors.password}
+                </p>
+              )}
+              <p className="text-xs text-slate-500 mt-1">
+                Password must be at least 8 characters long
+              </p>
             </div>
 
             <Button
@@ -243,6 +339,36 @@ const SignupPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Success Dialog */}
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent className="bg-white p-0 overflow-hidden max-w-md">
+          <div className="bg-blue-400 p-4 flex justify-center">
+            <div className="bg-white rounded-full p-2">
+              <Check className="w-8 h-8 text-blue-400" />
+            </div>
+          </div>
+          <AlertDialogHeader className="p-6">
+            <AlertDialogTitle className="text-2xl text-center font-bold text-slate-800">
+              Account Created Successfully!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-slate-600">
+              Your MediCare account has been created. You can now log in to
+              access all of our healthcare services.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="p-6 pt-0">
+            <AlertDialogAction asChild>
+              <Button
+                onClick={handleLoginRedirect}
+                className="w-full bg-blue-400 hover:bg-blue-500"
+              >
+                Proceed to Login
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

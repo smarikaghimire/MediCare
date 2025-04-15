@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,35 +13,34 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
+  const { login, loading } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
 
-    // Simulate login process (replace with your actual API logic)
-    setTimeout(() => {
-      // Simulated credentials (replace with actual login API call)
-      if (email === "test@example.com" && password === "password123") {
-        // On successful login, redirect to dashboard or home
-        router.push("/dashboard"); // Change this to the route after login
+    try {
+      const result = await login(email, password);
+
+      if (result.success) {
+        router.push("/");
       } else {
-        setError("Invalid email or password");
+        setError(result.error || "Login failed");
       }
-      setIsLoading(false);
-    }, 1500);
+    } catch (err) {
+      setError(err.message || "An unexpected error occurred");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
-      {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -left-10 top-1/4 w-40 h-40 bg-blue-100 rounded-full mix-blend-multiply animate-blob1"></div>
         <div className="absolute right-1/3 top-1/3 w-32 h-32 bg-indigo-100 rounded-full mix-blend-multiply animate-blob2"></div>
@@ -50,7 +48,7 @@ const LoginPage = () => {
       </div>
 
       <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center relative">
-        {/* Left Section - Healthcare Animation */}
+        {/* Left Section */}
         <div className="hidden lg:flex flex-col items-center justify-center p-8 space-y-8">
           <div className="relative">
             <Heart className="w-20 h-20 text-blue-600 animate-pulse" />
@@ -91,7 +89,7 @@ const LoginPage = () => {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Input */}
+            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Email Address
@@ -105,12 +103,12 @@ const LoginPage = () => {
                   placeholder="Enter your email"
                   className="pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                   required
-                  disabled={isLoading}
+                  disabled={loading}
                 />
               </div>
             </div>
 
-            {/* Password Input */}
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Password
@@ -124,17 +122,17 @@ const LoginPage = () => {
                   placeholder="Enter your password"
                   className="pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                   required
-                  disabled={isLoading}
+                  disabled={loading}
                 />
               </div>
             </div>
 
-            {/* Error Message */}
+            {/* Error */}
             {error && (
               <div className="text-sm text-red-600 text-center">{error}</div>
             )}
 
-            {/* Remember me and Forgot password */}
+            {/* Remember and Forgot */}
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
@@ -157,20 +155,19 @@ const LoginPage = () => {
               </Link>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
             >
-              {isLoading ? (
+              {loading ? (
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 "Sign In"
               )}
             </Button>
 
-            {/* No account? Link to Signup */}
             <p className="text-center text-sm text-slate-600">
               Don't have an account?{" "}
               <Link
@@ -184,44 +181,46 @@ const LoginPage = () => {
         </div>
       </div>
 
-      <style jsx global>{`
-        @keyframes blob1 {
-          0%,
-          100% {
-            transform: translate(0, 0) scale(1);
+      <style jsx global>
+        {`
+          @keyframes blob1 {
+            0%,
+            100% {
+              transform: translate(0, 0) scale(1);
+            }
+            50% {
+              transform: translate(20px, -20px) scale(1.1);
+            }
           }
-          50% {
-            transform: translate(20px, -20px) scale(1.1);
+          @keyframes blob2 {
+            0%,
+            100% {
+              transform: translate(0, 0) scale(1);
+            }
+            50% {
+              transform: translate(-20px, 20px) scale(1.1);
+            }
           }
-        }
-        @keyframes blob2 {
-          0%,
-          100% {
-            transform: translate(0, 0) scale(1);
+          @keyframes blob3 {
+            0%,
+            100% {
+              transform: translate(0, 0) scale(1);
+            }
+            50% {
+              transform: translate(20px, 20px) scale(1.1);
+            }
           }
-          50% {
-            transform: translate(-20px, 20px) scale(1.1);
+          .animate-blob1 {
+            animation: blob1 7s infinite;
           }
-        }
-        @keyframes blob3 {
-          0%,
-          100% {
-            transform: translate(0, 0) scale(1);
+          .animate-blob2 {
+            animation: blob2 8s infinite;
           }
-          50% {
-            transform: translate(20px, 20px) scale(1.1);
+          .animate-blob3 {
+            animation: blob3 9s infinite;
           }
-        }
-        .animate-blob1 {
-          animation: blob1 7s infinite;
-        }
-        .animate-blob2 {
-          animation: blob2 8s infinite;
-        }
-        .animate-blob3 {
-          animation: blob3 9s infinite;
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
