@@ -10,12 +10,12 @@ import {
   CheckCircle,
   X,
 } from "lucide-react";
-import { useAuth } from "@/lib/hooks/useAuth"; // Import the auth context
+import { useAuth } from "@/lib/hooks/useAuth";
 
 const BookingModal = ({ isOpen, onClose, doctor }) => {
-  const { isLoggedIn, userName } = useAuth(); // Get auth context
+  const { isLoggedIn, userName } = useAuth();
   const [formData, setFormData] = useState({
-    name: "", // Initialize with empty string
+    name: "",
     contact: "",
     date: "",
     time: "",
@@ -28,22 +28,17 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
   const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false);
   const [userEmail, setUserEmail] = useState("");
 
-  // Set name from auth context if available, but only if we have actual user data
+  // Set name from auth context if available
   useEffect(() => {
     if (isLoggedIn && userName) {
-      // Only set the name if firstName or lastName exists
       if (userName.firstName || userName.lastName) {
         setFormData((prev) => ({
           ...prev,
           name: `${userName.firstName || ""} ${userName.lastName || ""}`.trim(),
         }));
       }
-
-      // Get the user email from localStorage
       const email = localStorage.getItem("userEmail");
-      if (email) {
-        setUserEmail(email);
-      }
+      if (email) setUserEmail(email);
     }
   }, [isLoggedIn, userName]);
 
@@ -75,7 +70,6 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
     const fetchAvailableSlots = async () => {
       setIsLoadingTimeSlots(true);
       try {
-        // Use a fallback approach if the API call fails
         try {
           const response = await fetch(
             `/api/bookings/available-slots?doctorId=${doctor._id}&date=${formData.date}`
@@ -83,21 +77,18 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
 
           if (response.ok) {
             const data = await response.json();
-
             if (data.success) {
               setAvailableTimeSlots(data.data.availableTimeSlots || []);
               setBookedTimeSlots(data.data.bookedTimeSlots || []);
               return;
             }
           }
-
           console.error(
             `Error fetching available slots: ${response.status} ${response.statusText}`
           );
         } catch (error) {
           console.error("Error fetching available slots:", error);
         }
-
         // Fallback: Use all time slots if API fails
         setAvailableTimeSlots(defaultTimeSlots);
         setBookedTimeSlots([]);
@@ -116,7 +107,7 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
     // Check if the selected date is on an available day
     if (selectedDate) {
       const date = new Date(selectedDate);
-      const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const dayOfWeek = date.getDay();
       const dayNames = [
         "Sunday",
         "Monday",
@@ -139,23 +130,17 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
       }
     }
 
-    setFormData({ ...formData, date: selectedDate, time: "" }); // Reset time when date changes
+    setFormData({ ...formData, date: selectedDate, time: "" });
   };
 
-  // Format time for display (e.g., "09:00" to "09:00 AM")
+  // Format time for display
   const formatTimeForDisplay = (time) => {
     if (!time) return "";
-
     const [hours, minutes] = time.split(":");
     const hour = Number.parseInt(hours, 10);
-
-    if (hour < 12) {
-      return `${hours}:${minutes} AM`;
-    } else if (hour === 12) {
-      return `${hours}:${minutes} PM`;
-    } else {
-      return `${(hour - 12).toString().padStart(2, "0")}:${minutes} PM`;
-    }
+    if (hour < 12) return `${hours}:${minutes} AM`;
+    else if (hour === 12) return `${hours}:${minutes} PM`;
+    else return `${(hour - 12).toString().padStart(2, "0")}:${minutes} PM`;
   };
 
   // Handle form submission
@@ -165,7 +150,7 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
     setError("");
 
     try {
-      // First, create the booking in the database
+      // Create the booking in the database
       const bookingResponse = await fetch("/api/bookings", {
         method: "POST",
         headers: {
@@ -188,9 +173,8 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
       const bookingData = await bookingResponse.json();
       console.log("Booking created successfully:", bookingData);
 
-      // Then, send email notification (silently in the background)
+      // Send email notification (silently in the background)
       try {
-        // Send email notification without showing status to user
         await fetch("/api/email", {
           method: "POST",
           headers: {
@@ -202,12 +186,10 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
             contactNumber: formData.contact,
             appointmentDate: formData.date,
             appointmentTime: formData.time,
-            patientEmail: userEmail, // Use email from state
+            patientEmail: userEmail,
           }),
         });
-        // No status updates to the user about email
       } catch (emailError) {
-        // Log error but don't show to user
         console.warn("Email notification failed:", emailError);
       }
 
@@ -235,58 +217,62 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
   }));
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center fadeIn">
-      <div className="bg-white rounded-2xl w-full max-w-md mx-4 transform slideIn">
+    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center fadeIn">
+      <div className="bg-white rounded-lg w-full max-w-md shadow-xl transform slideIn">
         {!isBooked ? (
           <div className="p-6">
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-xl font-bold text-gray-800">
                 Book Appointment
               </h2>
               <button
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-500 hover:text-gray-700 transition-colors rounded-full p-1 hover:bg-gray-100"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Doctor Info */}
-            <div className="bg-blue-50 rounded-xl p-4 mb-6">
-              <h3 className="font-medium text-blue-800">{doctor.name}</h3>
-              <p className="text-blue-600">
-                {doctor.specialization || doctor.specialty}
-              </p>
-              <p className="text-blue-600">{doctor.hospital}</p>
-              <p className="text-blue-600">{doctor.location}</p>
-              <p className="text-blue-600">
-                Consultation Fee: ${doctor.consultationFee}
-              </p>
-              <p className="text-blue-600 mt-2">
-                <span className="font-medium">Available Days:</span>{" "}
-                {availableDaysDisplay}
-              </p>
+            {/* Doctor Info Card */}
+            <div className="bg-blue-50 rounded-lg p-4 mb-6">
+              <h3 className="font-medium text-blue-800 text-lg mb-2">
+                {doctor.name}
+              </h3>
+              <div className="flex justify-between mb-2">
+                <span className="text-blue-700 font-medium">
+                  {doctor.specialization || doctor.specialty}
+                </span>
+                <span className="text-blue-700 font-medium">
+                  Fee: ${doctor.consultationFee}
+                </span>
+              </div>
+              <div className="text-sm text-blue-600 flex items-center">
+                <CalendarDays className="w-4 h-4 mr-2" />
+                Available: {availableDaysDisplay}
+              </div>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-4">
-                {error}
+              <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-5 flex items-center">
+                <X className="w-5 h-5 mr-2 text-red-500" />
+                <span>{error}</span>
               </div>
             )}
 
             {/* Booking Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="flex items-center text-gray-700">
-                  <User className="w-5 h-5 mr-2 text-blue-500" />
-                  <span>Your Name</span>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Name input */}
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <User className="w-4 h-4 mr-2 text-blue-500" />
+                  <span>Full Name</span>
                 </label>
                 <input
                   required
                   type="text"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="Enter your name"
                   value={formData.name}
                   onChange={(e) =>
@@ -295,16 +281,17 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center text-gray-700">
-                  <Phone className="w-5 h-5 mr-2 text-blue-500" />
+              {/* Contact input */}
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Phone className="w-4 h-4 mr-2 text-blue-500" />
                   <span>Contact Number</span>
                 </label>
                 <input
                   required
                   type="tel"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  placeholder="Enter your contact number"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  placeholder="Enter contact number"
                   value={formData.contact}
                   onChange={(e) =>
                     setFormData({ ...formData, contact: e.target.value })
@@ -312,55 +299,56 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center text-gray-700">
-                  <CalendarDays className="w-5 h-5 mr-2 text-blue-500" />
-                  <span>Preferred Date</span>
-                  {doctor.availableDays && doctor.availableDays.length > 0 && (
-                    <span className="ml-2 text-xs text-blue-600">
-                      (Only {availableDaysDisplay} available)
-                    </span>
-                  )}
+              {/* Date input */}
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <CalendarDays className="w-4 h-4 mr-2 text-blue-500" />
+                  <span>Appointment Date</span>
                 </label>
                 <input
                   required
                   type="date"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   value={formData.date}
                   onChange={handleDateChange}
-                  min={new Date().toISOString().split("T")[0]} // Prevent selecting past dates
+                  min={new Date().toISOString().split("T")[0]}
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center text-gray-700">
-                  <Clock className="w-5 h-5 mr-2 text-blue-500" />
-                  <span>Preferred Time</span>
+              {/* Time selection */}
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Clock className="w-4 h-4 mr-2 text-blue-500" />
+                  <span>Appointment Time</span>
                 </label>
                 {isLoadingTimeSlots ? (
-                  <div className="flex items-center justify-center py-2">
+                  <div className="flex items-center justify-center py-3 bg-gray-50 rounded-lg border border-gray-200">
                     <Loader2 className="w-5 h-5 text-blue-500 animate-spin mr-2" />
-                    <span>Loading available times...</span>
+                    <span className="text-gray-600">
+                      Loading available times...
+                    </span>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div className="grid grid-cols-3 gap-2 mt-2">
                     {allTimeSlotsWithStatus.map(({ time, isBooked }) => (
                       <button
                         key={time}
                         type="button"
                         disabled={isBooked}
                         onClick={() => setFormData({ ...formData, time })}
-                        className={`py-2 px-3 rounded-lg border text-center transition-all ${
+                        className={`py-2 px-2 rounded-lg border text-center transition-all ${
                           formData.time === time
-                            ? "bg-blue-500 text-white border-blue-500"
+                            ? "bg-blue-500 text-white border-blue-500 shadow-md"
                             : isBooked
                             ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                            : "bg-white text-gray-700 border-gray-300 hover:border-blue-500"
+                            : "bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:shadow-sm"
                         }`}
                       >
-                        {formatTimeForDisplay(time)}
+                        <span className="block text-sm font-medium">
+                          {formatTimeForDisplay(time)}
+                        </span>
                         {isBooked && (
-                          <span className="block text-xs">(Booked)</span>
+                          <span className="block text-xs mt-1">(Booked)</span>
                         )}
                       </button>
                     ))}
@@ -368,10 +356,11 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
                 )}
               </div>
 
+              {/* Submit button */}
               <button
                 type="submit"
                 disabled={isLoading || !formData.date || !formData.time}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 text-base font-medium flex items-center justify-center mt-6 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -379,21 +368,34 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
                     Processing...
                   </>
                 ) : (
-                  "Confirm Booking"
+                  "Confirm Appointment"
                 )}
               </button>
             </form>
           </div>
         ) : (
-          <div className="p-6 text-center success">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <div className="p-8 text-center">
+            <div className="bg-green-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-12 h-12 text-green-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-3">
               Booking Confirmed!
             </h2>
-            <p className="text-gray-600">
-              Your appointment has been scheduled with {doctor.name} for{" "}
-              {new Date(formData.date).toLocaleDateString()} at{" "}
-              {formatTimeForDisplay(formData.time)}
+            <p className="text-gray-600 mb-6">
+              Your appointment with{" "}
+              <span className="font-medium text-gray-800">{doctor.name}</span>{" "}
+              is scheduled for{" "}
+              <span className="font-medium text-gray-800">
+                {new Date(formData.date).toLocaleDateString()}
+              </span>{" "}
+              at{" "}
+              <span className="font-medium text-gray-800">
+                {formatTimeForDisplay(formData.time)}
+              </span>
+            </p>
+            <p className="text-sm text-gray-500">
+              A confirmation email has been sent to your registered email
+              address.
             </p>
           </div>
         )}
