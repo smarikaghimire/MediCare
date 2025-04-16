@@ -215,7 +215,7 @@ export default function DoctorManagementAdmin() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">
             Doctor Management
@@ -425,10 +425,10 @@ export default function DoctorManagementAdmin() {
                     Specialization
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                    Fee
+                    Fees
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-right w-24">
-                    Action .
+                    Action
                   </th>
                 </tr>
               </thead>
@@ -496,7 +496,7 @@ export default function DoctorManagementAdmin() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium">
-                        ${doctor.consultationFee}
+                        Rs.{doctor.consultationFee}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

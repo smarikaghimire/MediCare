@@ -33,7 +33,10 @@ const SignupPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [errors, setErrors] = useState({
+    firstName: "",
+    lastName: "",
     email: "",
+    phone: "",
     password: "",
   });
 
@@ -46,12 +49,108 @@ const SignupPage = () => {
   });
 
   const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    // Basic format check with regex
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    if (!emailRegex.test(email)) {
+      return { isValid: false, message: "Please enter a valid email address" };
+    }
+
+    // Split email into parts for detailed validation
+    const [username, domainPart] = email.toLowerCase().split("@");
+    const domainParts = domainPart.split(".");
+    const domain = domainParts.slice(0, -1).join("."); // Everything except the TLD
+    const tld = domainParts[domainParts.length - 1];
+
+    // Username validation (applies to all email addresses)
+    if (username.length < 3) {
+      return {
+        isValid: false,
+        message: "Email username must be at least 3 characters",
+      };
+    }
+
+    // List of valid email service domains
+    const validEmailDomains = [
+      "gmail.com",
+      "yahoo.com",
+      "hotmail.com",
+      "outlook.com",
+      "icloud.com",
+      "aol.com",
+      "protonmail.com",
+      "mail.com",
+      "zoho.com",
+      "yandex.com",
+      "gmx.com",
+      "live.com",
+      "email.com", // Added common domains
+      "msn.com",
+      "me.com",
+      "fastmail.com",
+      "mailbox.org",
+      "tutanota.com",
+    ];
+
+    // Check if domain is in the valid domains list
+    if (!validEmailDomains.includes(domainPart)) {
+      return {
+        isValid: false,
+        message:
+          "Please use a valid email provider (like gmail.com, yahoo.com, outlook.com)",
+      };
+    }
+
+    // Specific validation for common domains
+    if (domainPart === "gmail.com") {
+      // Gmail usernames must be 6-30 chars and can't start with a dot
+      if (
+        username.length < 6 ||
+        username.length > 30 ||
+        username.startsWith(".")
+      ) {
+        return {
+          isValid: false,
+          message: "Gmail addresses require 6-30 characters before @gmail.com",
+        };
+      }
+
+      // Gmail doesn't allow consecutive dots
+      if (username.includes("..")) {
+        return {
+          isValid: false,
+          message: "Gmail addresses cannot contain consecutive dots",
+        };
+      }
+    }
+
+    // Yahoo-specific validation
+    if (domainPart === "yahoo.com") {
+      if (username.length < 4) {
+        return {
+          isValid: false,
+          message:
+            "Yahoo addresses require at least 4 characters before @yahoo.com",
+        };
+      }
+    }
+
+    // All checks passed
+    return { isValid: true, message: "" };
   };
 
   const validatePassword = (password) => {
     return password.length >= 8;
+  };
+
+  const validateName = (name) => {
+    return name.length >= 2 && name.length <= 50;
+  };
+
+  const validatePhone = (phone) => {
+    // Nepali phone numbers are 10 digits
+    const phoneRegex = /^[0-9]{10}$/;
+    return phoneRegex.test(phone);
   };
 
   const handleChange = (e) => {
@@ -62,12 +161,10 @@ const SignupPage = () => {
     }));
 
     // Clear errors when user types
-    if (name === "email" || name === "password") {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -75,8 +172,22 @@ const SignupPage = () => {
 
     // Validate form
     const newErrors = {};
-    if (!validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+
+    if (!validateName(formData.firstName)) {
+      newErrors.firstName = "First name must be between 2-50 characters";
+    }
+
+    if (!validateName(formData.lastName)) {
+      newErrors.lastName = "Last name must be between 2-50 characters";
+    }
+
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      newErrors.email = emailValidation.message;
+    }
+
+    if (!validatePhone(formData.phone)) {
+      newErrors.phone = "Phone number must be exactly 10 digits";
     }
 
     if (!validatePassword(formData.password)) {
@@ -120,6 +231,18 @@ const SignupPage = () => {
 
   const handleLoginRedirect = () => {
     router.push("/Login");
+  };
+
+  const handleBlurEmail = () => {
+    if (formData.email) {
+      const emailValidation = validateEmail(formData.email);
+      if (!emailValidation.isValid) {
+        setErrors((prev) => ({
+          ...prev,
+          email: emailValidation.message,
+        }));
+      }
+    }
   };
 
   return (
@@ -223,10 +346,19 @@ const SignupPage = () => {
                     value={formData.firstName}
                     onChange={handleChange}
                     placeholder="John"
-                    className="pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                    className={`pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500 ${
+                      errors.firstName ? "border-red-500" : ""
+                    }`}
+                    maxLength={50}
                     required
                   />
                 </div>
+                {errors.firstName && (
+                  <p className="text-sm text-red-500 mt-1 flex items-center">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    {errors.firstName}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -240,10 +372,19 @@ const SignupPage = () => {
                     value={formData.lastName}
                     onChange={handleChange}
                     placeholder="Doe"
-                    className="pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                    className={`pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500 ${
+                      errors.lastName ? "border-red-500" : ""
+                    }`}
+                    maxLength={50}
                     required
                   />
                 </div>
+                {errors.lastName && (
+                  <p className="text-sm text-red-500 mt-1 flex items-center">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    {errors.lastName}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -258,6 +399,7 @@ const SignupPage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={handleBlurEmail}
                   placeholder="john.doe@example.com"
                   className={`pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500 ${
                     errors.email ? "border-red-500" : ""
@@ -284,11 +426,24 @@ const SignupPage = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  placeholder="123-456-7890"
-                  className="pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="9876543210"
+                  className={`pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500 ${
+                    errors.phone ? "border-red-500" : ""
+                  }`}
+                  maxLength={10}
+                  pattern="[0-9]{10}"
                   required
                 />
               </div>
+              {errors.phone && (
+                <p className="text-sm text-red-500 mt-1 flex items-center">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {errors.phone}
+                </p>
+              )}
+              <p className="text-xs text-slate-500 mt-1">
+                Enter a valid phone number
+              </p>
             </div>
 
             <div>

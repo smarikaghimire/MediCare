@@ -10,6 +10,8 @@ import {
   Stethoscope,
   CircleDot,
   User,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,6 +21,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { login, loading } = useAuth();
   const router = useRouter();
 
@@ -116,14 +119,25 @@ const LoginPage = () => {
               <div className="relative">
                 <Lock className="w-5 h-5 text-slate-400 absolute left-3 top-3" />
                 <Input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="pl-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                  className="pl-10 pr-10 bg-white/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                   required
                   disabled={loading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
 

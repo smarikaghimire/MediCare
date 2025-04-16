@@ -133,6 +133,16 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
     setFormData({ ...formData, date: selectedDate, time: "" });
   };
 
+  // Handle contact input change with validation for max 10 digits
+  const handleContactChange = (e) => {
+    const value = e.target.value;
+    // Only allow digits and limit to 10 characters
+    const digitsOnly = value.replace(/\D/g, "");
+    if (digitsOnly.length <= 10) {
+      setFormData({ ...formData, contact: digitsOnly });
+    }
+  };
+
   // Format time for display
   const formatTimeForDisplay = (time) => {
     if (!time) return "";
@@ -244,7 +254,7 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
                   {doctor.specialization || doctor.specialty}
                 </span>
                 <span className="text-blue-700 font-medium">
-                  Fee: ${doctor.consultationFee}
+                  Fee: Rs.{doctor.consultationFee}
                 </span>
               </div>
               <div className="text-sm text-blue-600 flex items-center">
@@ -281,7 +291,7 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
                 />
               </div>
 
-              {/* Contact input */}
+              {/* Contact input with max 10 digits validation */}
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                   <Phone className="w-4 h-4 mr-2 text-blue-500" />
@@ -291,12 +301,16 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
                   required
                   type="tel"
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  placeholder="Enter contact number"
+                  placeholder="Enter contact number "
                   value={formData.contact}
-                  onChange={(e) =>
-                    setFormData({ ...formData, contact: e.target.value })
-                  }
+                  onChange={handleContactChange}
+                  maxLength={10}
+                  pattern="[0-9]{10}"
+                  title="Please enter a valid 10-digit contact number"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter a valid 10 digit contact number
+                </p>
               </div>
 
               {/* Date input */}

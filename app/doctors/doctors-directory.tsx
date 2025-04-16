@@ -13,6 +13,7 @@ import {
   Lock,
   Mail,
   DollarSign,
+  Wallet,
   Briefcase,
   Building,
 } from "lucide-react";
@@ -156,7 +157,7 @@ const DoctorsDirectory = () => {
         }
 
         if (data.success && data.data) {
-          // Process doctors data to ensure all needed fields exist
+          // Process doctors data to ensure all needed fields exist and normalize values
           const processedDoctors = data.data.map((doctor) => {
             // Make a copy to avoid direct mutation
             const doctorData = { ...doctor };
@@ -164,6 +165,15 @@ const DoctorsDirectory = () => {
             // Standardize on specialty field
             doctorData.specialty =
               doctorData.specialization || doctorData.specialty || "";
+
+            // Normalize location values by trimming and ensuring consistent case
+            if (doctorData.location) {
+              doctorData.location = doctorData.location.trim();
+
+              // Optionally normalize case to ensure consistency
+              // doctorData.location = doctorData.location.charAt(0).toUpperCase() +
+              //                      doctorData.location.slice(1).toLowerCase();
+            }
 
             return doctorData;
           });
@@ -183,15 +193,24 @@ const DoctorsDirectory = () => {
     fetchDoctors();
   }, []);
 
-  // Get unique locations from fetched doctors, filtering out empty values
-  const locations = [
-    ...new Set(doctors.map((doctor) => doctor.location).filter(Boolean)),
-  ];
+  // Get unique locations from fetched doctors, filtering out empty values and normalizing case
+  const locations = doctors
+    .filter((doctor) => Boolean(doctor.location))
+    .map((doctor) => doctor.location.trim())
+    .filter(
+      (location, index, self) =>
+        // Using indexOf to ensure only the first occurrence of each location is kept
+        self.indexOf(location) === index
+    )
+    .sort(); // Sorting locations alphabetically for better UX
 
-  // Get unique specialties, standardizing on the specialty field
-  const specialties = [
-    ...new Set(doctors.map((doctor) => doctor.specialty).filter(Boolean)),
-  ];
+  // Get unique specialties, with improved deduplication
+  const specialties = doctors
+    .filter((doctor) => Boolean(doctor.specialty))
+    .map((doctor) => doctor.specialty.trim().toLowerCase())
+    .filter((specialty, index, self) => self.indexOf(specialty) === index)
+    .map((specialty) => specialty.charAt(0).toUpperCase() + specialty.slice(1)) // Capitalize first letter
+    .sort(); // Sorting specialties alphabetically
 
   const filteredDoctors = doctors.filter((doctor) => {
     const matchesSearch =
@@ -199,11 +218,19 @@ const DoctorsDirectory = () => {
       doctor.specialty?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doctor.hospital?.toLowerCase().includes(searchTerm.toLowerCase());
 
+    // Case-insensitive location matching
     const matchesLocation =
-      selectedLocation === "" || doctor.location === selectedLocation;
+      selectedLocation === "" ||
+      (doctor.location &&
+        doctor.location.trim().toLowerCase() ===
+          selectedLocation.trim().toLowerCase());
 
+    // Case-insensitive specialty matching
     const matchesSpecialty =
-      selectedSpecialty === "" || doctor.specialty === selectedSpecialty;
+      selectedSpecialty === "" ||
+      (doctor.specialty &&
+        doctor.specialty.trim().toLowerCase() ===
+          selectedSpecialty.trim().toLowerCase());
 
     return matchesSearch && matchesLocation && matchesSpecialty;
   });
@@ -225,6 +252,11 @@ const DoctorsDirectory = () => {
   // Function to check if a value is properly present
   const hasValue = (value) => {
     return value !== undefined && value !== null && value !== "";
+  };
+
+  // Handler for location selection
+  const handleLocationChange = (e) => {
+    setSelectedLocation(e.target.value);
   };
 
   // Update URL with search parameters for better SEO (retaining browser history)
@@ -303,7 +335,7 @@ const DoctorsDirectory = () => {
                       id="location-filter"
                       className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-blue-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none appearance-none bg-white cursor-pointer transition-all duration-300"
                       value={selectedLocation}
-                      onChange={(e) => setSelectedLocation(e.target.value)}
+                      onChange={handleLocationChange}
                       aria-label="Filter by location"
                     >
                       <option value="">All Locations</option>
@@ -495,7 +527,7 @@ const DoctorsDirectory = () => {
                               </span>
                             </div>
                             <div className="flex items-center space-x-3 text-gray-600">
-                              <DollarSign
+                              <Wallet
                                 className="w-5 h-5 text-indigo-500"
                                 aria-hidden="true"
                               />
@@ -503,7 +535,7 @@ const DoctorsDirectory = () => {
                                 Fee:{" "}
                                 <span itemProp="priceRange">
                                   {hasValue(doctor.consultationFee)
-                                    ? `$${doctor.consultationFee}`
+                                    ? `Rs.${doctor.consultationFee}`
                                     : "Not specified"}
                                 </span>
                               </span>
