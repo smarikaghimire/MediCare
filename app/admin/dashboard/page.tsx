@@ -1,4 +1,3 @@
-//app/admin/dashboard/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,10 +13,12 @@ import {
   ChevronRight,
   RefreshCw,
   AlertTriangle,
+  Mail,
 } from "lucide-react";
 import DoctorManagementAdmin from "@/components/admin/DoctorManagementAdmin";
 import EmergencyContactsAdmin from "@/components/admin/EmergencyContactsAdmin";
 import AppointmentManagementAdmin from "@/components/admin/AppointmentManagementAdmin";
+import ContactFormAdmin from "@/components/admin/ContactFormAdmin";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -30,6 +31,7 @@ export default function AdminDashboard() {
     doctorCount: 0,
     emergencyCount: 0,
     appointmentCount: 0,
+    contactFormCount: 0,
   });
   const router = useRouter();
 
@@ -66,6 +68,7 @@ export default function AdminDashboard() {
           doctorCount: data.doctorCount || 0,
           emergencyCount: data.emergencyCount || 0,
           appointmentCount: data.appointmentCount || 0,
+          contactFormCount: data.contactFormCount || 0,
         });
       } else {
         setError("Failed to fetch dashboard data. Please try again.");
@@ -115,6 +118,7 @@ export default function AdminDashboard() {
     { id: "doctors", label: "Doctors", icon: Users },
     { id: "emergency", label: "Emergency Contacts", icon: Phone },
     { id: "appointments", label: "Appointments", icon: Calendar },
+    { id: "contact", label: "Contact Submissions", icon: Mail },
   ];
 
   // Stats cards configuration for reusability
@@ -136,6 +140,12 @@ export default function AdminDashboard() {
       label: "Appointments",
       value: dashboardData.appointmentCount,
       color: "green",
+    },
+    {
+      id: "contact",
+      label: "Contact Messages",
+      value: dashboardData.contactFormCount,
+      color: "yellow",
     },
   ];
 
@@ -305,7 +315,7 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statCards.map((card) => (
                   <div
                     key={card.id}
@@ -328,7 +338,9 @@ export default function AdminDashboard() {
                             ? "registered"
                             : card.id === "emergency"
                             ? "contacts"
-                            : "scheduled"}
+                            : card.id === "appointments"
+                            ? "scheduled"
+                            : "received"}
                         </span>
                       </div>
                     </div>
@@ -375,9 +387,10 @@ export default function AdminDashboard() {
                         Connected
                       </span>
                     </div>
+
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Last Update</span>
-                      <span className="text-gray-500 text-sm">
+                      <span className="text-gray-600">Last Updated</span>
+                      <span className="text-gray-600 text-sm">
                         {new Date().toLocaleString()}
                       </span>
                     </div>
@@ -390,6 +403,7 @@ export default function AdminDashboard() {
           {activeTab === "doctors" && <DoctorManagementAdmin />}
           {activeTab === "emergency" && <EmergencyContactsAdmin />}
           {activeTab === "appointments" && <AppointmentManagementAdmin />}
+          {activeTab === "contact" && <ContactFormAdmin />}
         </div>
       </div>
     </div>

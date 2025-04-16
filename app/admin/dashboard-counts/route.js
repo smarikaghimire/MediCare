@@ -3,6 +3,7 @@ import dbConnect from "@/lib/database";
 import Doctor from "@/lib/models/Doctor";
 import Appointment from "@/lib/models/Appointment";
 import EmergencyContact from "@/lib/models/EmergencyContact";
+import ContactForm from "@/lib/models/ContactForm";
 
 export async function GET() {
   try {
@@ -17,11 +18,15 @@ export async function GET() {
     // Count appointments
     const appointmentCount = await Appointment.countDocuments();
 
+    // Count contact form submissions
+    const contactFormCount = await ContactForm.countDocuments();
+
     return NextResponse.json({
       success: true,
       doctorCount,
       emergencyCount,
       appointmentCount,
+      contactFormCount,
     });
   } catch (error) {
     console.error("Error fetching dashboard counts:", error);
