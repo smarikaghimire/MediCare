@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
-// List of paths that require authentication
+// Listing of paths that require authentication
 const protectedPaths = [
   "/doctors",
   "/appointments",
   "/dashboard",
-  "/profile", // Add profile to protected paths
-  // Add any other protected routes here
+  "/profile", // Adding profile to protected paths
 ];
 
 // List of paths that are public (no auth needed)
@@ -24,7 +23,7 @@ const publicPaths = [
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Check if the path is public
+  // Checking if the path is public
   const isPublicPath = publicPaths.some(
     (path) =>
       pathname === path ||
@@ -32,12 +31,12 @@ export async function middleware(request) {
       pathname.startsWith("/_next/")
   );
 
-  // If the path is public, allow access
+  // If the path is public, allowing access
   if (isPublicPath) {
     return NextResponse.next();
   }
 
-  // Check if the path requires authentication
+  // Checking if the path requires authentication
   const isProtectedPath = protectedPaths.some(
     (path) => pathname === path || pathname.startsWith(path + "/")
   );
@@ -47,16 +46,16 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // Get the token from the cookies
+  // Getting the token from the cookies
   const token = request.cookies.get("token")?.value;
 
-  // If there's no token, redirect to login
+  // If there's no token, redirecting to login
   if (!token) {
     return NextResponse.redirect(new URL("/Login", request.url));
   }
 
   try {
-    // Verify the token using jsonwebtoken
+    // Verifying the token using jsonwebtoken
     jwt.verify(token, process.env.JWT_SECRET);
 
     // Token is valid, continue

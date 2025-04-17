@@ -100,6 +100,28 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
     fetchAvailableSlots();
   }, [doctor._id, formData.date]);
 
+  // Check if a time slot has passed for the current day
+  const isTimeSlotPassed = (time) => {
+    if (!formData.date) return false;
+
+    const today = new Date();
+    const selectedDate = new Date(formData.date);
+
+    // Only check for current day
+    if (selectedDate.toDateString() !== today.toDateString()) {
+      return false;
+    }
+
+    // Parse the time slot
+    const [hours, minutes] = time.split(":").map(Number);
+
+    // Compare with current time
+    return (
+      today.getHours() > hours ||
+      (today.getHours() === hours && today.getMinutes() >= minutes)
+    );
+  };
+
   // Handle date input change with validation
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
@@ -130,6 +152,7 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
       }
     }
 
+    // Reset time when date changes to avoid invalid selections
     setFormData({ ...formData, date: selectedDate, time: "" });
   };
 
@@ -160,6 +183,11 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
     setError("");
 
     try {
+      // Additional validation to prevent booking past slots
+      if (isTimeSlotPassed(formData.time)) {
+        throw new Error("Cannot book a time slot that has already passed");
+      }
+
       // Create the booking in the database
       const bookingResponse = await fetch("/api/bookings", {
         method: "POST",
@@ -220,11 +248,25 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
 
   if (!isOpen) return null;
 
-  // Combine all time slots and mark which ones are booked
-  const allTimeSlotsWithStatus = defaultTimeSlots.map((time) => ({
-    time,
-    isBooked: bookedTimeSlots.includes(time),
-  }));
+  // Combine all time slots and mark which ones are booked or passed
+  const allTimeSlotsWithStatus = defaultTimeSlots.map((time) => {
+    const isSlotBooked = bookedTimeSlots.includes(time);
+    const isSlotPassed = isTimeSlotPassed(time);
+
+    return {
+      time,
+      isBooked: isSlotBooked,
+      isPassed: isSlotPassed,
+      // This will determine what status text to show
+      status: isSlotBooked
+        ? isSlotPassed
+          ? "Passed"
+          : "Booked"
+        : isSlotPassed
+        ? "Passed"
+        : "",
+    };
+  });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center fadeIn">
@@ -344,28 +386,32 @@ const BookingModal = ({ isOpen, onClose, doctor }) => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-2 mt-2">
-                    {allTimeSlotsWithStatus.map(({ time, isBooked }) => (
-                      <button
-                        key={time}
-                        type="button"
-                        disabled={isBooked}
-                        onClick={() => setFormData({ ...formData, time })}
-                        className={`py-2 px-2 rounded-lg border text-center transition-all ${
-                          formData.time === time
-                            ? "bg-blue-500 text-white border-blue-500 shadow-md"
-                            : isBooked
-                            ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                            : "bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:shadow-sm"
-                        }`}
-                      >
-                        <span className="block text-sm font-medium">
-                          {formatTimeForDisplay(time)}
-                        </span>
-                        {isBooked && (
-                          <span className="block text-xs mt-1">(Booked)</span>
-                        )}
-                      </button>
-                    ))}
+                    {allTimeSlotsWithStatus.map(
+                      ({ time, isBooked, isPassed, status }) => (
+                        <button
+                          key={time}
+                          type="button"
+                          disabled={isBooked || isPassed}
+                          onClick={() => setFormData({ ...formData, time })}
+                          className={`py-2 px-2 rounded-lg border text-center transition-all ${
+                            formData.time === time
+                              ? "bg-blue-500 text-white border-blue-500 shadow-md"
+                              : isBooked || isPassed
+                              ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:shadow-sm"
+                          }`}
+                        >
+                          <span className="block text-sm font-medium">
+                            {formatTimeForDisplay(time)}
+                          </span>
+                          {status && (
+                            <span className="block text-xs mt-1">
+                              ({status})
+                            </span>
+                          )}
+                        </button>
+                      )
+                    )}
                   </div>
                 )}
               </div>

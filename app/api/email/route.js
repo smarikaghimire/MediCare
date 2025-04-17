@@ -85,7 +85,7 @@ export async function POST(request) {
           <p><strong>Date:</strong> ${formattedDate}</p>
           <p><strong>Time:</strong> ${formattedTime}</p>
         </div>
-        <p>Please contact admin to confirm or cancel this appointment.</p>
+        <p>Please contact admin to reschedule or cancel this appointment.</p>
         <p>Thank you,<br>MediCare </p>
       </div>
     `;
@@ -97,7 +97,7 @@ export async function POST(request) {
         <p>Dear ${patientName},</p>
         <p>Your appointment has been booked successfully. Here are the details:</p>
         <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 15px 0;">
-          <p><strong>Doctor:</strong> Dr. ${doctor.name}</p>
+          <p><strong>Doctor:</strong> ${doctor.name}</p>
           <p><strong>Specialty:</strong> ${
             doctor.specialty || doctor.specialization || "Specialist"
           }</p>

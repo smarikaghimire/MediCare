@@ -1,4 +1,3 @@
-//components/available-date-picker.tsx for letting users select only that date where doctors are available 
 "use client";
 
 import { useState, useEffect } from "react";
@@ -77,6 +76,16 @@ const AvailableDatePicker = ({
     today.setHours(0, 0, 0, 0);
     const date = new Date(year, month, day);
     return date < today;
+  };
+
+  // Check if date is today
+  const isToday = (year, month, day) => {
+    const today = new Date();
+    return (
+      today.getDate() === day &&
+      today.getMonth() === month &&
+      today.getFullYear() === year
+    );
   };
 
   // Handle date selection
@@ -186,6 +195,7 @@ const AvailableDatePicker = ({
               selectedDate.getMonth() === month &&
               selectedDate.getFullYear() === year;
             const isPast = isPastDate(year, month, day);
+            const isTodayDate = isToday(year, month, day);
 
             return (
               <button
@@ -195,6 +205,7 @@ const AvailableDatePicker = ({
                 onClick={() => handleDateSelect(year, month, day)}
                 className={`h-8 w-8 flex items-center justify-center rounded-full text-sm
                   ${isSelected ? "bg-blue-600 text-white" : ""}
+                  ${isTodayDate && !isSelected ? "border border-blue-500" : ""}
                   ${
                     !isSelected && isAvailable && !isPast
                       ? "hover:bg-blue-100"

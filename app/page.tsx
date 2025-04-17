@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-// Add structured data for LocalBusiness (hospital/medical organization)
+// Adding structured data for LocalBusiness (hospital/medical organization)
 export default function HomePage() {
   return (
     <>
